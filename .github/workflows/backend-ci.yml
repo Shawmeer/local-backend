@@ -1,7 +1,11 @@
 name: Backend CI/CD
 
+# Trigger on push and pull request events on the main branch
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -10,18 +14,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Backend Code
       uses: actions/checkout@v2
 
-    - name: Build Docker image
+    - name: Run Backend Tests
+      run: |
+        npm install
+        npm test
+
+    - name: Build Backend Docker image
       run: |
         docker build -t myapp/backend .
 
-    - name: Push Docker image
+    - name: Tag and Push Backend Docker image to Docker Hub
       run: |
-        docker tag myapp/backend:latest your_dockerhub_username/backend:latest
-        docker push your_dockerhub_username/backend:latest
+        docker tag myapp/backend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/backend:latest
+        echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/backend:latest
 
-    - name: Deploy to local environment
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Deploy Backend to Local Environment
       run: |
-        ssh user@your-server 'docker pull your_dockerhub_username/backend:latest && docker run -d -p 3001:3001 your_dockerhub_username/backend:latest'
+        ssh user@your-server 'docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/backend:latest && docker run -d -p 3001:3001 ${{ secrets.DOCKER_HUB_USERNAME }}/backend:latest'
