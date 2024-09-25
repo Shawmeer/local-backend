@@ -1,0 +1,27 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: |
+        docker build -t myapp/backend .
+
+    - name: Push Docker image
+      run: |
+        docker tag myapp/backend:latest your_dockerhub_username/backend:latest
+        docker push your_dockerhub_username/backend:latest
+
+    - name: Deploy to local environment
+      run: |
+        ssh user@your-server 'docker pull your_dockerhub_username/backend:latest && docker run -d -p 3001:3001 your_dockerhub_username/backend:latest'
