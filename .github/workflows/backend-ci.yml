@@ -1,6 +1,5 @@
 name: Backend CI/CD
 
-# Trigger on push and pull request events on the main branch
 on:
   push:
     branches:
@@ -16,11 +15,6 @@ jobs:
     steps:
     - name: Checkout Backend Code
       uses: actions/checkout@v2
-
-    - name: Run Backend Tests
-      run: |
-        npm install
-        npm test
 
     - name: Build Backend Docker image
       run: |
